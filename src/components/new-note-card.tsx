@@ -3,9 +3,13 @@ import { X } from "lucide-react";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { toast } from "sonner";
 
-export function NewNoteCard() {
+interface NewNoteCardProps {
+  onNoteCreated: (content: string) => void;
+}
+
+export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
   const [shouldShowOnBording, setShouldShowOnBording] = useState(true); // Estado para criar a nota
-  const [content, setContent] = useState(""); // Estado para saber se possui conteúdo 
+  const [content, setContent] = useState(""); // Estado para saber se possui conteúdo
 
   // Função para quando o usuário clicar na opção escolhida para criar a nota aparecer a área para escrever/gravar a nota
   function handleStartEditor() {
@@ -24,7 +28,9 @@ export function NewNoteCard() {
   function handleSaveNote(event: FormEvent) {
     event.preventDefault();
 
-    console.log(content);
+    onNoteCreated(content); // Criando a nota com seu conteúdo (função do App() - elemento pai)
+    setContent(""); // Reseta o textarea quando salvo a nota
+    setShouldShowOnBording(true) // Retorna a mensagem para escolher como criar a nota
 
     toast.success("Nota criada com sucesso");
   }
@@ -69,9 +75,10 @@ export function NewNoteCard() {
               ) : (
                 <textarea
                   autoFocus
+                  placeholder="Escreva aqui sua anotação..."
                   className="text-sm leading-6 text-slate-400 bg-transparent resize-none flex-1 outline-none"
                   onChange={handleContentChanged}
-                  placeholder="Escreva aqui sua anotação..."
+                  value={content}
                 />
               )}
             </div>
