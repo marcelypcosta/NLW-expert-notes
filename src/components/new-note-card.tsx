@@ -11,7 +11,7 @@ export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
   const [shouldShowOnBording, setShouldShowOnBording] = useState(true); // Estado para criar a nota
   const [content, setContent] = useState(""); // Estado para saber se possui conteúdo
 
-  // Função para quando o usuário clicar na opção escolhida para criar a nota aparecer a área para escrever/gravar a nota
+  // Função para aparecer a área para escrever/gravar a nota
   function handleStartEditor() {
     setShouldShowOnBording(false);
   }
@@ -28,9 +28,9 @@ export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
   function handleSaveNote(event: FormEvent) {
     event.preventDefault();
 
-    onNoteCreated(content); // Criando a nota com seu conteúdo (função do App() - elemento pai)
-    setContent(""); // Reseta o textarea quando salvo a nota
-    setShouldShowOnBording(true) // Retorna a mensagem para escolher como criar a nota
+    onNoteCreated(content); // Criando a nota recebendo o conteúdo (função do App())
+    setContent(""); // Resetando o textarea quando salvo a nota
+    setShouldShowOnBording(true) // Retornando para tela para criação
 
     toast.success("Nota criada com sucesso");
   }

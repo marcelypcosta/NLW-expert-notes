@@ -11,13 +11,15 @@ interface Note {
 
 export function App() {
   const [notes, setNotes] = useState<Note[]>(() => {
-    const notesOnStorage = localStorage.getItem("notes"); // Busca o item 'notes
+    const notesOnStorage = localStorage.getItem("notes");
 
-    // Condição que se tiver o item 'notes' retorna tudo que esta lá
+    // Condição de existência do item
     if (notesOnStorage) { 
       return JSON.parse(notesOnStorage);
     }
-  }); // Definindo o formato do estado com lista '<Note[]> e mostrando todas as notas salvas no Local Storage
+
+    return [];
+  }); // Definindo o formato do estado com lista '<Note[]>' e buscando as notas salvas no Local Storage
 
   function onNoteCreated(content: string) {
     const newNote = {
@@ -26,9 +28,9 @@ export function App() {
       content,
     };
 
-    const notesArray = [newNote, ...notes];
+    const notesArray = [newNote, ...notes]; // Concatenando a nota criada com as já existente em ordem
 
-    setNotes(notesArray); // Juntando a nota criada com as anteriores deixando em ordem de salvamento
+    setNotes(notesArray); 
 
     localStorage.setItem("notes", JSON.stringify(notesArray)); // Salvando as notas no Local Storage
   }
