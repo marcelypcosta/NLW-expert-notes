@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import Logo from "./assets/logo-nlw-extends-notes.svg";
 import { NewNoteCard } from "./components/new-note-card";
 import { NoteCard } from "./components/note-card";
@@ -10,11 +10,12 @@ interface Note {
 }
 
 export function App() {
+  const [search, setSearch] = useState(""); 
   const [notes, setNotes] = useState<Note[]>(() => {
     const notesOnStorage = localStorage.getItem("notes");
 
     // Condição de existência do item
-    if (notesOnStorage) { 
+    if (notesOnStorage) {
       return JSON.parse(notesOnStorage);
     }
 
@@ -30,10 +31,22 @@ export function App() {
 
     const notesArray = [newNote, ...notes]; // Concatenando a nota criada com as já existente em ordem
 
-    setNotes(notesArray); 
+    setNotes(notesArray);
 
     localStorage.setItem("notes", JSON.stringify(notesArray)); // Salvando as notas no Local Storage
   }
+
+  function handleSearch(event: ChangeEvent<HTMLInputElement>) { // Função para receber a pesquisa do usuário
+    const query = event.target.value;
+
+    setSearch(query);
+  }
+
+  // Condição para filtrar as notas
+  const filteredNotes =
+    search != ""
+      ? notes.filter((note) => note.content.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
+      : notes;
 
   return (
     <div className="mx-auto max-w-6xl my-12 space-y-6">
@@ -44,6 +57,7 @@ export function App() {
           type="text"
           placeholder="Busque em suas notas..."
           className="w-full bg-transparent text-3xl font-semibold tracking-tight outline-none placeholder:text-slate-500"
+          onChange={handleSearch}
         />
       </form>
 
@@ -51,7 +65,7 @@ export function App() {
 
       <div className="grid grid-cols-3 auto-rows-[250px] gap-6">
         <NewNoteCard onNoteCreated={onNoteCreated} />
-        {notes.map((note) => {
+        {filteredNotes.map((note) => {
           return <NoteCard key={note.id} note={note} />;
         })}
       </div>
