@@ -5,11 +5,14 @@ import { toast } from "sonner";
 
 interface NewNoteCardProps {
   onNoteCreated: (content: string) => void;
-}
+} // Ligando a função do App() p criação de uma nova nota
+
+let speechRecognition: SpeechRecognition | null = null; // Deixando variável speechRecognition global
 
 export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
   const [shouldShowOnBording, setShouldShowOnBording] = useState(true); // Estado para criar a nota
   const [content, setContent] = useState(""); // Estado para saber se possui conteúdo
+  const [recording, setRecording] = useState(false); // Estado para gravar
 
   // Função para aparecer a área para escrever/gravar a nota
   function handleStartEditor() {
@@ -28,12 +31,66 @@ export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
   function handleSaveNote(event: FormEvent) {
     event.preventDefault();
 
+    if (content === "") {
+      return;
+    }
+
     onNoteCreated(content); // Criando a nota recebendo o conteúdo (função do App())
     setContent(""); // Resetando o textarea quando salvo a nota
-    setShouldShowOnBording(true) // Retornando para tela para criação
+    setShouldShowOnBording(true); // Retornando para tela para criação
 
     toast.success("Nota criada com sucesso");
   }
+
+  function handleStartRecording() {
+    const isSpeechRecognitionAPIAvailable =
+      "SpeechRecognition" in window || "webkitSpeechRecognition" in window;
+
+    if (!isSpeechRecognitionAPIAvailable) {
+      alert("Infelizmente seu navegador não suporta a API de gravação");
+      return;
+    }
+
+    setRecording(true);
+    setShouldShowOnBording(false);
+
+    // Acessando API instalando @types/dom-speech-recognition
+    const SpeechRecognitionAPI =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    speechRecognition = new SpeechRecognitionAPI();
+
+    speechRecognition.lang = "pt-BR";
+    speechRecognition.continuous = true; // Gravação só para quando solicitado
+    speechRecognition.maxAlternatives = 1;
+    speechRecognition.interimResults = true; // Retorno instantâneo da gravação
+
+    // Capturando e processando os resultados de transcrição de fala.
+    speechRecognition.onresult = (event) => {
+      // Convertendo a coleção de resultados de reconhecimento de fala em um array e percorrendo (reduce) o array de resultados
+      const transcription = Array.from(event.results).reduce((text, result) => {
+        // Concatenando as transcrições
+        return text.concat(result[0].transcript);
+      }, "");
+
+      setContent(transcription); // atualizando o conteúdo da nota
+    };
+
+    speechRecognition.onerror = (event) => {
+      console.error(event);
+    };
+
+    speechRecognition.start();
+  }
+
+  function handleStopRecording() {
+    setRecording(false);
+
+    if (speechRecognition != null) {
+      speechRecognition.stop();
+    }
+  }
+
   return (
     <Dialog.Root>
       <Dialog.Trigger className="rounded-md flex flex-col bg-slate-700 text-left p-5 gap-3 outline-none hover:ring-2 hover:ring-slate-600 hover:cursor-pointer focus-visible:ring-2 focus-visible:ring-lime-400">
@@ -52,7 +109,7 @@ export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
           <Dialog.Close className="absolute right-0 top-0 bg-slate-800 p-1.5 text-slate-400 hover:text-slate-100">
             <X className="size-5" />
           </Dialog.Close>
-          <form onSubmit={handleSaveNote} className="flex-1 flex flex-col">
+          <form className="flex-1 flex flex-col">
             <div className="flex flex-1 flex-col gap-3 p-5">
               <span className="text-sm font-medium text-slate-300">
                 Adicionar nota
@@ -61,12 +118,17 @@ export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
               {shouldShowOnBording ? (
                 <p className="text-sm leading-6 text-slate-400">
                   Comece{" "}
-                  <button className="font-medium text-lime-400 hover:underline">
+                  <button
+                    onClick={handleStartRecording}
+                    type="button"
+                    className="font-medium text-lime-400 hover:underline"
+                  >
                     gravando uma nota em áudio
                   </button>{" "}
                   ou se preferir{" "}
                   <button
                     onClick={handleStartEditor}
+                    type="button"
                     className="font-medium text-lime-400 hover:underline"
                   >
                     utlize apenas texto.
@@ -75,18 +137,29 @@ export function NewNoteCard({ onNoteCreated }: NewNoteCardProps) {
               ) : (
                 <textarea
                   autoFocus
-                  placeholder="Escreva aqui sua anotação..."
+                  placeholder="..."
                   className="text-sm leading-6 text-slate-400 bg-transparent resize-none flex-1 outline-none"
                   onChange={handleContentChanged}
                   value={content}
                 />
               )}
             </div>
-            {shouldShowOnBording ? (
-              ""
+            {recording ? (
+              <button
+                type="button"
+                onClick={handleStopRecording}
+                className="w-full flex items-center justify-center gap-2 bg-slate-900 py-4 text-center text-sm text-slate-300 outline-none font-medium group"
+              >
+                <div className="size-3 rounded-full bg-red-500 animate-pulse" />
+                Gravando!
+                <span className="group-hover:text-red-400">
+                  (clique p/ interromper)
+                </span>
+              </button>
             ) : (
               <button
-                type="submit"
+                type="button"
+                onClick={handleSaveNote}
                 className="w-full bg-lime-400 py-4 text-center text-sm text-slate-950 outline-none font-medium hover:bg-lime-500"
               >
                 Salvar nota

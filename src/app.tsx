@@ -67,7 +67,8 @@ export function App() {
         <NewNoteCard onNoteCreated={onNoteCreated} />
         {filteredNotes.map((note) => {
           return <NoteCard key={note.id} note={note} />;
-        })}
+        })} 
+        {/* Percorrendo as notas existentes no Local Storage */}
       </div>
     </div>
   );
