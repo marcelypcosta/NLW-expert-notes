@@ -59,7 +59,7 @@ export function App() {
       return note.id !== id;
     });
 
-    setNotes(notesArray); // Mostrar as notas após a remoção
+    setNotes(notesArray); // Atualizando as notas após a remoção
 
     localStorage.setItem("notes", JSON.stringify(notesArray)); // Enviando a nova lista de notas
 
